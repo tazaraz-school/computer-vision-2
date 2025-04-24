@@ -162,5 +162,5 @@ cython_debug/
 */checkpoints/*.pt
 */checkpoints/*.pth
 */plots/*.pkl
-*/plots/*.png
+# */plots/*.png
 dataset/*
