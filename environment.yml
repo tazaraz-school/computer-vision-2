@@ -1,15 +1,22 @@
-name: computer-vision-2
 channels:
   - defaults
   - pytorch
   - conda-forge
 dependencies:
   - python=3.11.4
-  - torchaudio=2.0.2=py311_cu117
-  - torchvision=0.15.2=py311_cu117
   - tqdm=4.65.0
   - pillow=10.2.0
+  - pandas==2.1.1
+  - matplotlib==3.8.0
+  - scikit-learn==1.3.2
+  - huggingface_hub
+  - einops
+  - safetensors
+  - roma
+  - gradio
+  - opencv-python
+  - scipy
+  - trimesh
+  - tensorboard
+  - pyglet<2
   - pip
-  - pandas=2.1.1
-  - matplotlib=3.8.0
-  - scikit-learn=1.3.2

@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-
+from random import sample
+import glob
 
 class PerspectiveMapDataset(Dataset):
     def __init__(self, image_paths, class_to_idx):
@@ -20,18 +21,22 @@ class PerspectiveMapDataset(Dataset):
         directory = image_filepath.split("/")[-3]
         identifier = image_filepath.split("/")[-2]
         number = (image_filepath.split("/")[-1]).split('.')[0]
-        field_path = f'../dataset/{dataset_type}_Fields/{directory}/{identifier}_{number}.pt'
-        return field_path
+
+        #field_path = f'../dataset/{dataset_type}_Fields/{directory}/{identifier}_{number}.pt'
+        reproduced_field_path = f'/scratch-shared/scur0700/Projective_Geometry_Fields/{dataset_type}_Fields/{directory}/{identifier}_{number}.pt'     #edited by faida
+        
+        return reproduced_field_path
     
     def __getitem__(self, idx):
         image_filepath = self.image_paths[idx]
-        
+
         field_path = self.image_path_to_field_path(image_filepath)
         
         field = torch.load(field_path)
         
         latitude_map = field['pred_latitude_original']
         gravity_maps = field['pred_gravity_original']
+        #print("CHEEEEEK_og\n",latitude_map)
         
         joined_maps = self.transform_maps(latitude_map,  gravity_maps)
         
@@ -45,23 +50,36 @@ def get_train_dataloaders(train_image_paths, val_image_paths, class_to_idx):
     train_dataset = PerspectiveMapDataset(train_image_paths, class_to_idx)
     val_dataset = PerspectiveMapDataset(val_image_paths, class_to_idx)
 
-    train_dataloader = DataLoader(train_dataset, batch_size = 256, shuffle = True, num_workers=6)
-    val_dataloader = DataLoader(val_dataset, batch_size = 256, shuffle = True, num_workers=6)
+    train_dataloader = DataLoader(train_dataset, batch_size =512, shuffle = True, num_workers=6)
+    val_dataloader = DataLoader(val_dataset, batch_size = 512, shuffle = True, num_workers=6)
 
     return train_dataloader, val_dataloader
 
 
-def get_test_dataloaders(test_image_paths, unconfident_image_paths, misclassified_image_paths, class_to_idx):
+def get_test_dataloaders(test_image_paths, unconfident_image_paths, misclassified_image_paths, class_to_idx, all_test_paths_fields):  # edited
     
     easy_image_paths = list(set(test_image_paths) - set(unconfident_image_paths + misclassified_image_paths))
-    
+
+    easy_image_paths = list(set(easy_image_paths) & set(all_test_paths_fields)) # edited
+    easy_image_paths = sample(easy_image_paths,int(len(easy_image_paths)*0.1))
+
+
+    # pour debugging
+    #easy_image_paths = ["/scratch-shared/scur0700/Projective_Geometry_Fields/Kandinsky_Indoor/test/real/98933.jpg","/scratch-shared/scur0700/Projective_Geometry_Fields/Kandinsky_Indoor/test/real/98936.jpg"]
+
+    easy_image_paths = sample(easy_image_paths,500) #int(len(easy_image_paths)*0.1)) #eeeee
+
     easy_dataset = PerspectiveMapDataset(easy_image_paths, class_to_idx)
-    easy_dataloader = DataLoader(easy_dataset, batch_size=256, shuffle=True)
+    easy_dataloader = DataLoader(easy_dataset, batch_size=1, shuffle=False) # edit faalse 
     
+    #unconfident_image_paths = list(set(unconfident_image_paths) & set(all_test_paths_fields)) # edited
+
     unconfident_dataset = PerspectiveMapDataset(unconfident_image_paths + misclassified_image_paths, class_to_idx)
-    unconfident_dataloader = DataLoader(unconfident_dataset, batch_size=256, shuffle=True)
+    unconfident_dataloader = DataLoader(unconfident_dataset, batch_size=512, shuffle=True)
     
+    #misclassified_image_paths = list(set(misclassified_image_paths) & set(all_test_paths_fields)) # edited
+
     misclassified_dataset = PerspectiveMapDataset(misclassified_image_paths, class_to_idx)
-    misclassified_dataloader = DataLoader(misclassified_dataset, batch_size=256, shuffle=True)
+    misclassified_dataloader = DataLoader(misclassified_dataset, batch_size=512, shuffle=True)
     
     return easy_dataloader, unconfident_dataloader, misclassified_dataloader

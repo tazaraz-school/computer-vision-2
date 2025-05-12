@@ -1,0 +1,44 @@
+#!/bin/bash
+#Set job requirements
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --gpus=1
+#SBATCH --partition=gpu_a100
+#SBATCH --time=01:00:00
+
+
+echo "Running $@ in $(pwd)"
+
+module load 2024
+
+#conda env remove -n soba_env_try2
+#conda create -n soba_env_try2 python=3.8 -y
+source activate soba_env_try2
+
+module load 2022
+module load GCC/11.3.0
+module load CUDA/11.7.0
+
+#dont         #conda install numpy
+#echo "opencv  shiiiiiii"
+#pip install opencv-python tqdm
+# dont         #conda install pytorch torchvision torchaudio cudatoolkit=11.7 -c nvidia -y
+#echo "shteinnnnnnnnn"
+#pip install Polygon3 python-Levenshtein shapely 
+#echo "do a lil torching"
+#pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117 --no-cache-dir 
+#echo "reqsssssss"
+#pip install -r requirement.txt --no-cache-dir 
+#echo "bob the builder "
+#python setup.py build develop
+# dont          #conda install -c conda-forge  Polygon3 python-Levenshtein shapely
+
+#nvidia-smi
+
+#cd demo
+#python demo.py --input ../../../../../../scratch-shared/scur0700/Projective_Geometry_Fields/Kandinsky_Indoor/test --output /home/scur0700/computer-vision-2/SSIS/presuicide_out
+
+cd tools
+python train_net.py \
+    --config-file ../configs/SSIS/MS_R_101_BiFPN_SSISv2.yaml \
+    --num-gpus 1 --resume --eval-only

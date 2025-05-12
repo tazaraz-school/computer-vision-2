@@ -1,0 +1,23 @@
+#!/bin/bash
+#Set job requirements
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --gpus=1
+#SBATCH --partition=gpu_a100
+#SBATCH --time=03:00:00
+
+target=$1
+if [ -z "$target" ]; then
+    echo "Usage: $0 <target>"
+    exit 1
+
+# target does not exist
+elif [ ! -f "$target" ]; then
+    echo "target not found: $target"
+    exit 1
+fi
+
+
+echo "Running $@ in $(pwd)"
+source activate computer-vision-2 || conda activate computer-vision-2
+python  $@

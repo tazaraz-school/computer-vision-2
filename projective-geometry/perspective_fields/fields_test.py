@@ -21,32 +21,57 @@ def load_all_paths(base_path, data_paths):
     all_train_paths = []
     all_val_paths = []
     all_test_paths = []
-    
+
+    all_test_paths_fields = [] # edited
+
     for data_path in data_paths:
         data_path = base_path + data_path
 
         train_paths = []
         val_paths = []
         test_paths = []
+        test_paths_fields = [] # edited
+
         
         for path in glob.glob(data_path):
             train_paths.append(glob.glob(path + "/train/*/*"))
             val_paths.append(glob.glob(path + "/val/*/*"))
             test_paths.append(glob.glob(path + "/test/*/*"))
+            
+            # edited TODO: indoor dynamic
+            reproduced_field_path = '/scratch-shared/scur0700/Projective_Geometry_Fields/Kandinsky_Indoor_Fields/test/*'     #edited by faida
+            test_paths_fields.append(glob.glob(reproduced_field_path))
 
-        train_paths = list(flatten(train_paths))
+        train_paths = list(flatten(train_paths)) 
         val_paths = list(flatten(val_paths))
         test_paths = list(flatten(test_paths))
+        test_paths_fields = list(flatten(test_paths_fields)) # edited
+
+        
+        test_paths_fields = list(flatten(test_paths_fields)) # edited
+        converted_fields = []
+        example_path = test_paths[0]
+        example_split = "/".join(example_path.split("/")[0:-2])
+        for field in test_paths_fields:
+            split = field.split("/")[-1][0:-3]
+            split = split.split("_")
+            field = example_split + "/" + split[0] + "/" + split[1] + ".jpg"
+            converted_fields.append(field)
 
         all_train_paths += train_paths
         all_val_paths += val_paths
+
+        #test_paths = list(set(test_paths) & set(converted_fields)) # edited
         all_test_paths += test_paths
+        all_test_paths_fields += converted_fields
 
     all_train_paths = list(set(all_train_paths))
     all_val_paths = list(set(all_val_paths))
     all_test_paths = list(set(all_test_paths))
+    
+    all_test_paths_fields = list(set(all_test_paths_fields)) # edited
 
-    return all_train_paths, all_val_paths, all_test_paths
+    return all_train_paths, all_val_paths, all_test_paths, all_test_paths_fields
 
 def test(model, test_dataloader, save_path, test_type):
 
@@ -57,6 +82,14 @@ def test(model, test_dataloader, save_path, test_type):
     all_labels = torch.tensor([]).to(device)
     all_pred_probs = torch.tensor([]).to(device)
     with torch.no_grad():
+        
+        # lil sanity check by reproduction team
+        all_paths = test_dataloader.dataset.image_paths
+        for path_ in all_paths:
+            end = path_.split("/")[-1]
+            if not end[0].isnumeric():
+                print(path_)
+        
         for images, labels in tqdm(test_dataloader, desc="testing"):
             images = images.to(device)
             labels = labels.to(device)
@@ -122,7 +155,8 @@ if __name__ == "__main__":
     category = args.category
     print("category:", category)
 
-    base_path = "../dataset/"
+    #base_path = "../dataset/"
+    base_path = "../../../../../../scratch-shared/scur0700/Projective_Geometry_Fields/" # edited for reproduce, cant store local
 
     misclassified_indoor_file = "./misclassified_indoor_list.pkl"
     misclassified_outdoor_file = "./misclassified_outdoor_list.pkl"
@@ -162,11 +196,13 @@ if __name__ == "__main__":
         save_path = "./checkpoints/Fields_combined.pt"
         model = load_model(target_device = device, path_to_checkpoint = save_path)
 
-    train_image_paths, val_image_paths, test_image_paths = load_all_paths(base_path, image_data_paths)
+    train_image_paths, val_image_paths, test_image_paths, all_test_paths_fields = load_all_paths(base_path, image_data_paths) # edited all_test_paths_fields
     
-    easy_dataloader, unconfident_dataloader, misclassified_dataloader = get_test_dataloaders(test_image_paths, unconfident_image_paths, misclassified_image_paths, class_to_idx)
+    easy_dataloader, unconfident_dataloader, misclassified_dataloader = get_test_dataloaders(test_image_paths, unconfident_image_paths, misclassified_image_paths, class_to_idx, all_test_paths_fields) # edited all_test_paths_fields
     
     test(model, easy_dataloader, save_path, "easy")
-    test(model, unconfident_dataloader, save_path, "unconfident")
-    test(model, misclassified_dataloader, save_path, "misclassified")
+    #print("Testing on unconfident set with length of ", len(unconfident_dataloader)) 
+    #test(model, unconfident_dataloader, save_path, "unconfident")
+    #print("Testing on misclassified set with length of ", len(misclassified_dataloader))
+    #test(model, misclassified_dataloader, save_path, "misclassified")
     
