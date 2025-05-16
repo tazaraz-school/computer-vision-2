@@ -91,6 +91,8 @@ if __name__ == '__main__':
                 print(f"Content of the pickle file:")
                 for key, value in pickled.items():
                     print(f"{key}: \t{value[0]}    \t... and {len(value) - 1} more lines")
+        else:
+            print(f"File '{args.storage}' does not exist.")
         exit(0)
 
     if not args.video:
