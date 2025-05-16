@@ -93,6 +93,9 @@ if __name__ == '__main__':
                     print(f"{key}: \t{value[0]}    \t... and {len(value) - 1} more lines")
         exit(0)
 
+    if not args.video:
+        print("Please provide a video file using --video")
+        exit(1)
 
     # Build the model
     print("Building model")
