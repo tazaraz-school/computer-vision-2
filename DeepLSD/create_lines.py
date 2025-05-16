@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # Argument parser
     parser = argparse.ArgumentParser(description='Extract lines from a video using DeepLSD.')
     parser.add_argument('--print', action='store_true', help='Print the content of the pickle file.')
-    parser.add_argument('--video', type=str, required=True, help='Path to the video file.')
+    parser.add_argument('--video', type=str, help='Path to the video file.')
     parser.add_argument('--storage', type=str, default='lines.pkl', help='Path to the output pickle file.')
     args = parser.parse_args()
 
