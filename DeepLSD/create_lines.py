@@ -57,7 +57,7 @@ def video_to_frames(video_path):
         if not ret:
             break
         frame_path = os.path.join(dir, f'frame_{frame_count:04d}.jpg')
-        cv2.imwrite(frame_path, frame)
+        cv2.imwrite(frame_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
         frame_path_list.append(frame_path)
         frame_count += 1
 
@@ -78,25 +78,39 @@ def video_to_lines(net, storage, video_path):
 if __name__ == '__main__':
     # Argument parser
     parser = argparse.ArgumentParser(description='Extract lines from a video using DeepLSD.')
+    parser.add_argument('--print', action='store_true', help='Print the content of the pickle file.')
     parser.add_argument('--video', type=str, required=True, help='Path to the video file.')
     parser.add_argument('--storage', type=str, default='lines.pkl', help='Path to the output pickle file.')
     args = parser.parse_args()
 
+    if args.print:
+        if os.path.exists(args.storage):
+            with open(args.storage, 'rb') as f:
+                pickled = pickle.load(f)
+                # Print the content of the pickle file
+                print(f"Content of the pickle file:")
+                for key, value in pickled.items():
+                    print(f"{key}: \t{value[0]}    \t... and {len(value) - 1} more lines")
+        exit(0)
+
+
     # Build the model
     print("Building model")
     net = build_model()
-
-    # Create a dictionary to store lines for each frame
-    print("Loading storage")
-    if os.path.exists(args.storage):
-        with open(args.storage, 'rb') as f:
-            storage = pickle.load(f)
-    else:
-        storage = {}
+    storage = {}
 
     # Process the video and extract lines
     video_to_lines(net, storage, args.video)
 
+    # Update the storage with possibly updated data
+    if os.path.exists(args.storage):
+        with open(args.storage, 'rb') as f:
+            # Read the contents of the file
+            old_storage = pickle.load(f)
+            # Merge the old storage with the new storage
+            storage.update(old_storage)
+
     # Save the lines to a pkl file
-    with open('lines.pkl', 'wb') as f:
+    with open(args.storage, 'wb') as f:
+        # Save the updated storage
         pickle.dump(storage, f)
