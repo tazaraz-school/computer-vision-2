@@ -13,4 +13,6 @@ https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_Base
 
 5. Install all the required packages for dust3r, which is described in their README.md file.
 
-6. Run the epipolar_inconsistency.ipynb or epipolar_script.py (for side-by-side videos with their respective heatmap).
+6. Change the model_name to the respective path: ~/computer-vision-2/epipolar_inconsistency/dust3r-main/naver. 
+
+7. Run the epipolar_inconsistency.ipynb or epipolar_script.py (for side-by-side videos with their respective heatmap).
